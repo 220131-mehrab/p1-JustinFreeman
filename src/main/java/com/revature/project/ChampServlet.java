@@ -25,9 +25,13 @@ public class ChampServlet extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         List<Champion> champion = new ArrayList<>();
         try {
-            ResultSet resultSet = connect.prepareStatement("select * from champions").executeQuery();
+            ResultSet resultSet = connect.prepareStatement("select * from champion").executeQuery();
             while (resultSet.next()) {
-                champion.add(new Champion(resultSet.getString("name"), resultSet.getString("classType"), resultSet.getInt("health")));
+                Champion addChampion = new Champion(resultSet.getInt("champId"),
+                        resultSet.getString("name"),
+                        resultSet.getString("classType"),
+                        resultSet.getInt("health"));
+                champion.add(addChampion);
             }
         }catch (SQLException e) {
             System.err.println("Failed to retrieve from Database: " + e.getMessage());
@@ -44,10 +48,11 @@ public class ChampServlet extends HttpServlet {
         ObjectMapper mapper = new ObjectMapper();
         Champion newChampion = mapper.readValue(req.getInputStream(), Champion.class);
         try {
-            PreparedStatement preparedStatement = connect.prepareStatement("Insert into 'champion' values (?, ?, ?)");
-            preparedStatement.setString(1, newChampion.getName());
-            preparedStatement.setString(2, newChampion.getClassType());
-            preparedStatement.setInt(3, newChampion.getHealth());
+            PreparedStatement preparedStatement = connect.prepareStatement("Insert into champions values (?, ?, ?, ?)");
+            preparedStatement.setInt(1, newChampion.getChampId());
+            preparedStatement.setString(2, newChampion.getName());
+            preparedStatement.setString(3, newChampion.getClassType());
+            preparedStatement.setInt(4, newChampion.getHealth());
 
             preparedStatement.executeUpdate();
             preparedStatement.close();
@@ -55,5 +60,4 @@ public class ChampServlet extends HttpServlet {
             System.err.println("Failed to insert new Champion: " + e.getMessage());
         }
     }
-
 }
